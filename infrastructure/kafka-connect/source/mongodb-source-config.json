@@ -1,0 +1,55 @@
+{
+  "name": "orders-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.mongodb.MongoDbConnector",
+    "tasks.max": "3",
+
+    "mongodb.connection.string": "mongodb://mongo-1:27017,mongo-2:27017,mongo-3:27017?replicaSet=rs0&retryWrites=true&w=majority",
+    "mongodb.ssl.enabled": "false",
+    "mongodb.members.auto.discover": "true",
+    "mongodb.connection.mode": "replica_set",
+
+    "topic.prefix": "orders-cdc",
+    
+    "database.include.list": "forder",
+    "collection.include.list": "forder.orders",
+
+    "snapshot.mode": "initial",
+    "snapshot.max.threads": "4",
+    "snapshot.fetch.size": "10000",
+
+    "capture.mode": "change_streams_update_full",
+    "capture.scope": "database",
+
+    "poll.interval.ms": "500",
+    "max.batch.size": "4096",
+    "max.queue.size": "16384",
+    "max.queue.size.in.bytes": "0",
+
+    "provide.transaction.metadata": "true",
+    
+    "heartbeat.interval.ms": "5000",
+    "heartbeat.topics.prefix": "__debezium-heartbeat",
+
+    "event.processing.failure.handling.mode": "warn",
+    "errors.tolerance": "none",
+    "errors.log.enable": "true",
+    "errors.log.include.messages": "true",
+
+    "tombstones.on.delete": "true",
+    
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.connector.mongodb.transforms.ExtractNewDocumentState",
+    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.delete.handling.mode": "rewrite",
+    "transforms.unwrap.add.fields": "op,source.ts_ms,source.db,source.collection",
+
+    "converters": "mongodb",
+    "mongodb.type": "io.debezium.connector.mongodb.converters.MongoDbRecordParser",
+    
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}
