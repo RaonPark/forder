@@ -24,6 +24,9 @@ repositories {
 extra["springCloudVersion"] = "2025.1.0-RC1"
 
 dependencies {
+    implementation(project(":common"))
+    implementation(kotlin("stdlib"))
+
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-batch")
     implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
@@ -38,8 +41,10 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
     implementation("com.google.dagger:dagger-compiler:2.51.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
+
     ksp("com.google.dagger:dagger-compiler:2.51.1")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+
     testImplementation("org.springframework.boot:spring-boot-starter-batch-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-elasticsearch-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive-test")
@@ -72,3 +77,5 @@ kotlin {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+tasks.register("prepareKotlinBuildScriptModel") { }

@@ -44,3 +44,5 @@ tasks.withType<Test> {
 tasks.bootBuildImage {
     runImage = "paketobuildpacks/ubuntu-noble-run:latest"
 }
+
+tasks.register("prepareKotlinBuildScriptModel") { }

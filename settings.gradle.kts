@@ -8,5 +8,6 @@ include(
     "product-service",
     "payment-service",
     "query-service",
-    "kafka-streams-app"
+    "kafka-streams-app",
+    "common"
 )
