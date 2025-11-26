@@ -1,5 +1,6 @@
 package org.example.paymentservice.document
 
+import common.document.payment.PaymentMethod
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
