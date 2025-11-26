@@ -1,16 +1,14 @@
-package common.document
+package common.document.order
 
+import common.document.order.CompensationStatus
 import java.time.Instant
 
-data class ReturnState(
+data class CancellationState(
     val initiatedAt: Instant,
 
-    var pickupScheduled: Boolean = false,
-    var pickupScheduledAt: Instant? = null,
-    var pickupError: String? = null,
-
-    var itemsReceived: Boolean = false,
-    var itemsReceivedAt: Instant? = null,
+    var deliveryCancelled: Boolean = false,
+    var deliveryCancelledAt: Instant? = null,
+    var deliveryCancellationError: String? = null,
 
     var paymentRefunded: Boolean = false,
     var paymentRefundedAt: Instant? = null,

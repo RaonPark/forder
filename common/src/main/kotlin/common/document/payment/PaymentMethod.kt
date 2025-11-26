@@ -1,4 +1,4 @@
-package common.document
+package common.document.payment
 
 enum class PaymentMethod {
     CREDIT_CARD,

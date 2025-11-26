@@ -8,9 +8,9 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.math.BigDecimal
 import java.time.Instant
 
-import common.document.CancellationState
-import common.document.OrderStatus
-import common.document.ReturnState
+import common.document.order.CancellationState
+import common.document.order.OrderStatus
+import common.document.order.ReturnState
 
 @Document(collection = "orders")
 data class Orders(

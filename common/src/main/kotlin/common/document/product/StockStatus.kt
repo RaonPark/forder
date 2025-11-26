@@ -1,4 +1,4 @@
-package common.document
+package common.document.product
 
 enum class StockStatus {
     NORMAL,

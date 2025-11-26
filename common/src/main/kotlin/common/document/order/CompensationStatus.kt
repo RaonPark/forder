@@ -1,4 +1,4 @@
-package common.document
+package common.document.order
 
 enum class CompensationStatus {
     IN_PROGRESS,      // Saga is running

@@ -1,4 +1,4 @@
-package common.document
+package common.document.inventory
 
 enum class InventoryReferenceSource {
     ORDER_SERVICE,

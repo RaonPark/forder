@@ -1,8 +1,8 @@
 package org.example.inventoryservice.document
 
-import common.document.InventoryHistoryChangeType
-import common.document.InventoryReferenceSource
-import common.document.StockType
+import common.document.inventory.InventoryHistoryChangeType
+import common.document.inventory.InventoryReferenceSource
+import common.document.product.StockType
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant

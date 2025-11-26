@@ -1,13 +1,13 @@
 package org.example.queryservice.document
 
-import common.document.ProductStatus
+import common.document.product.ProductStatus
 import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import java.math.BigDecimal
 
-@Document(indexName = "products")
+@Document(indexName = "products-view")
 data class EnrichedProducts(
     @Id
     val productId: String,

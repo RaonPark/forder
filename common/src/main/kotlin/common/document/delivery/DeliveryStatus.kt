@@ -1,4 +1,4 @@
-package common.document
+package common.document.delivery
 
 enum class DeliveryStatus {
     PENDING,

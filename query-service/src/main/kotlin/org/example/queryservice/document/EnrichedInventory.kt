@@ -1,12 +1,12 @@
 package org.example.queryservice.document
 
-import common.document.StockStatus
+import common.document.product.StockStatus
 import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 
-@Document(indexName = "inventory")
+@Document(indexName = "inventory-view")
 data class EnrichedInventory(
     @Id
     val inventoryId: String,

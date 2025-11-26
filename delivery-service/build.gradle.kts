@@ -22,6 +22,7 @@ repositories {
 extra["springCloudVersion"] = "2025.1.0-RC1"
 
 dependencies {
+    implementation(project(":common"))
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.boot:spring-boot-starter-kafka")

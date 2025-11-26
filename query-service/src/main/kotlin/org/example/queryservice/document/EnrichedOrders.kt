@@ -1,19 +1,19 @@
 package org.example.queryservice.document
 
-import common.document.CancellationState
-import common.document.DeliveryStatus
-import common.document.OrderStatus
-import common.document.PaymentMethod
-import common.document.ReturnState
+import common.document.*
+import common.document.delivery.DeliveryStatus
+import common.document.order.CancellationState
+import common.document.order.OrderStatus
+import common.document.order.ReturnState
+import common.document.payment.PaymentMethod
 import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.Version
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import java.math.BigDecimal
 import java.time.Instant
 
-@Document(indexName = "orders")
+@Document(indexName = "orders-view")
 data class EnrichedOrders(
     @Id
     val orderId: String,
