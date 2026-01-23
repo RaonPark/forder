@@ -38,3 +38,9 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### Claude & Serena ###
+/.serena
+/serena
+CLAUDE.md
+nul
