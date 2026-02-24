@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package common.saga.command;
+
+option java_package = "common.saga.command";
+option java_outer_classname = "InventoryCommandProto";
+option java_multiple_files = true;
+
+message InventoryCommand {
+  string saga_id = 1;
+  InventoryCommandType type = 2;
+  repeated InventoryCommandItem items = 3;
+}
+
+message InventoryCommandItem {
+  string product_id = 1;
+  optional string option_id = 2;
+  int32 quantity = 3;
+}
+
+enum InventoryCommandType {
+  INVENTORY_COMMAND_TYPE_UNSPECIFIED = 0;
+  RESERVE = 1;
+  RELEASE = 2;
+}

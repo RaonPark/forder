@@ -4,10 +4,16 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.annotation.Version
+import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 
-@Document
+@Document(collection = "inventory")
+@CompoundIndex(
+    name = "inventory_unique_index",
+    def = "{ 'productId': 1, 'optionId': 1, 'location': 1 }",
+    unique = true
+)
 data class Inventory(
     @Id
     val inventoryId: String,

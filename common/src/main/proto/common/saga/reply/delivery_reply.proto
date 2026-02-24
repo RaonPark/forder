@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package common.saga.reply;
+
+option java_package = "common.saga.reply";
+option java_outer_classname = "DeliveryReplyProto";
+option java_multiple_files = true;
+
+message DeliveryReply {
+  string saga_id = 1;
+  bool success = 2;
+  optional string delivery_id = 3;
+  optional string failure_reason = 4;
+}

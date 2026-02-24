@@ -1,0 +1,180 @@
+version: "3.8"
+
+services:
+
+  # ──────────────────────────────────────────
+  # MongoDB Replica Set
+  # ──────────────────────────────────────────
+  mongo-1:
+    image: mongo:7.0
+    container_name: mongo-1
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-1-data:/data/db
+    networks:
+      - forder-net
+
+  mongo-2:
+    image: mongo:7.0
+    container_name: mongo-2
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-2-data:/data/db
+    networks:
+      - forder-net
+
+  mongo-3:
+    image: mongo:7.0
+    container_name: mongo-3
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongo-3-data:/data/db
+    networks:
+      - forder-net
+
+  mongo-init:
+    image: mongo:7.0
+    container_name: mongo-init
+    depends_on:
+      - mongo-1
+      - mongo-2
+      - mongo-3
+    restart: "no"
+    networks:
+      - forder-net
+    entrypoint: >
+      bash -c "
+        sleep 5 &&
+        mongosh --host mongo-1:27017 --eval '
+          rs.initiate({
+            _id: \"rs0\",
+            members: [
+              { _id: 0, host: \"mongo-1:27017\" },
+              { _id: 1, host: \"mongo-2:27017\" },
+              { _id: 2, host: \"mongo-3:27017\" }
+            ]
+          })
+        '
+      "
+
+  # ──────────────────────────────────────────
+  # Kafka (KRaft 모드 - Zookeeper 없음)
+  # Confluent Platform 8.0 = Apache Kafka 4.0
+  # Kafka 4.0부터 Zookeeper 완전 제거, KRaft 전용
+  # ──────────────────────────────────────────
+  kafka:
+    image: confluentinc/cp-kafka:8.0.3
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft: 이 브로커가 broker + controller 역할 동시 수행
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+
+      # 리스너 구성
+      # PLAINTEXT      : 컨테이너 내부 서비스 간 통신 (kafka:29092)
+      # PLAINTEXT_HOST : 호스트(로컬) 접근용 (localhost:9092)
+      # CONTROLLER     : KRaft 컨트롤러 내부 통신 전용
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://kafka:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # 단일 브로커이므로 replication factor 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      # KRaft 클러스터 ID (base64url 인코딩 UUID, 고정값 사용)
+      # 새로 생성하려면: docker run --rm confluentinc/cp-kafka:8.0.3 kafka-storage random-uuid
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - forder-net
+
+  # ──────────────────────────────────────────
+  # Schema Registry
+  # ──────────────────────────────────────────
+  schema-registry:
+    image: confluentinc/cp-schema-registry:8.0.3
+    container_name: schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    networks:
+      - forder-net
+
+  # ──────────────────────────────────────────
+  # Kafka Connect (Debezium 포함)
+  # Debezium 3.x는 Kafka 4.0 (CP 8.x) 호환
+  # ──────────────────────────────────────────
+  kafka-connect:
+    image: debezium/connect:3.0
+    container_name: kafka-connect
+    depends_on:
+      - kafka
+      - schema-registry
+      - mongo-1
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka:29092
+      GROUP_ID: kafka-connect-cluster
+      CONFIG_STORAGE_TOPIC: _connect-configs
+      OFFSET_STORAGE_TOPIC: _connect-offsets
+      STATUS_STORAGE_TOPIC: _connect-status
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+      KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_PLUGIN_PATH: /kafka/connect,/debezium-plugins
+    volumes:
+      - ./kafka-connect-plugins:/debezium-plugins
+    networks:
+      - forder-net
+
+  # ──────────────────────────────────────────
+  # Elasticsearch
+  # ──────────────────────────────────────────
+  elasticsearch:
+    image: elasticsearch:8.13.0
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    networks:
+      - forder-net
+
+networks:
+  forder-net:
+    driver: bridge
+    name: forder-net  # 서비스 compose에서 external: true로 참조
+
+volumes:
+  mongo-1-data:
+  mongo-2-data:
+  mongo-3-data:
+  kafka-data:
+  es-data:

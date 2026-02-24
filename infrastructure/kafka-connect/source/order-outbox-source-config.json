@@ -1,0 +1,53 @@
+{
+  "name": "order-outbox-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.mongodb.MongoDbConnector",
+    "tasks.max": "1",
+
+    "mongodb.connection.string": "mongodb://mongo-1:27017,mongo-2:27017,mongo-3:27017?replicaSet=rs0&retryWrites=true&w=majority",
+    "mongodb.ssl.enabled": "false",
+    "mongodb.members.auto.discover": "true",
+    "mongodb.connection.mode": "replica_set",
+
+    "topic.prefix": "outbox-cdc",
+
+    "database.include.list": "forder",
+    "collection.include.list": "forder.outbox",
+
+    "snapshot.mode": "never",
+
+    "capture.mode": "change_streams_update_full",
+    "capture.scope": "database",
+
+    "poll.interval.ms": "500",
+    "max.batch.size": "1024",
+    "max.queue.size": "8192",
+
+    "heartbeat.interval.ms": "5000",
+    "heartbeat.topics.prefix": "__debezium-heartbeat",
+
+    "tombstones.on.delete": "true",
+
+    "transforms": "unwrap,outbox",
+
+    "transforms.unwrap.type": "io.debezium.connector.mongodb.transforms.ExtractNewDocumentState",
+    "transforms.unwrap.drop.tombstones": "true",
+    "transforms.unwrap.delete.handling.mode": "drop",
+    "transforms.unwrap.add.fields": "op,source.ts_ms",
+
+    "transforms.outbox.type": "io.debezium.transforms.outbox.EventRouter",
+    "transforms.outbox.field.event.id": "eventId",
+    "transforms.outbox.field.event.key": "aggregateId",
+    "transforms.outbox.field.event.payload": "payload",
+    "transforms.outbox.route.by.field": "topic",
+    "transforms.outbox.route.topic.replacement": "${routedByValue}",
+    "transforms.outbox.table.expand.json.payload": "false",
+
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.converters.ByteArrayConverter",
+
+    "errors.tolerance": "none",
+    "errors.log.enable": "true",
+    "errors.log.include.messages": "true"
+  }
+}

@@ -17,6 +17,7 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://packages.confluent.io/maven/") }
 }
 
 extra["springCloudVersion"] = "2025.1.0-RC1"
@@ -33,6 +34,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
+
+    // Protobuf + Schema Registry
+    implementation("io.confluent:kafka-protobuf-serializer:7.8.0")
+    implementation("com.google.protobuf:protobuf-kotlin:3.25.3")
+
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive-test")

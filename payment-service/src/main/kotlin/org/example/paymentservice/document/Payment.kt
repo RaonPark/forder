@@ -1,6 +1,9 @@
 package org.example.paymentservice.document
 
+import common.document.payment.ApprovalDetails
 import common.document.payment.PaymentMethod
+import common.document.payment.PaymentStatus
+import common.document.payment.PgProvider
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
@@ -30,9 +33,9 @@ data class Payment (
     var canceledAt: Instant? = null,
 
     @CreatedDate
-    val createdAt: Instant = Instant.now(),
+    val createdAt: Instant? = null,
     @LastModifiedDate
-    var updatedAt: Instant = Instant.now(),
+    var updatedAt: Instant? = null,
     @Version
     var version: Long? = null
 )

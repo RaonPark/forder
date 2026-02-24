@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package common.saga.command;
+
+option java_package = "common.saga.command";
+option java_outer_classname = "PaymentCommandProto";
+option java_multiple_files = true;
+
+// BigDecimal은 정밀도 손실 없이 string으로 전송
+message PaymentCommand {
+  string saga_id = 1;
+  PaymentCommandType type = 2;
+  string order_id = 3;
+  string user_id = 4;
+  string amount = 5;
+}
+
+enum PaymentCommandType {
+  PAYMENT_COMMAND_TYPE_UNSPECIFIED = 0;
+  PROCESS = 1;
+  REFUND = 2;
+}

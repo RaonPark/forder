@@ -11,6 +11,7 @@ import java.time.Instant
 import common.document.order.CancellationState
 import common.document.order.OrderStatus
 import common.document.order.ReturnState
+import common.saga.OrderSagaState
 
 @Document(collection = "orders")
 data class Orders(
@@ -34,6 +35,8 @@ data class Orders(
     var cancelledAt: Instant? = null,
     var cancelledReason: String? = null,
     var cancellationStatus: CancellationState? = null,
+
+    var sagaState: OrderSagaState? = null,
 
     var returnedAt: Instant? = null,
     var returnReason: String? = null,

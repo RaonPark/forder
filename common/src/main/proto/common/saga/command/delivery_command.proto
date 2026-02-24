@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package common.saga.command;
+
+option java_package = "common.saga.command";
+option java_outer_classname = "DeliveryCommandProto";
+option java_multiple_files = true;
+
+message DeliveryCommand {
+  string saga_id = 1;
+  DeliveryCommandType type = 2;
+  string order_id = 3;
+  string user_id = 4;
+  string receiver_name = 5;
+  string receiver_phone = 6;
+  string delivery_address = 7;
+}
+
+enum DeliveryCommandType {
+  DELIVERY_COMMAND_TYPE_UNSPECIFIED = 0;
+  CREATE = 1;
+  CANCEL = 2;
+}

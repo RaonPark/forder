@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      routes:
+        - id: order-service
+          uri: http://order-service:8080
+          predicates:
+            - Path=/v1/orders/**
+
+        - id: payment-service
+          uri: http://payment-service:8080
+          predicates:
+            - Path=/v1/payment/**
+
+        - id: inventory-service
+          uri: http://inventory-service:8080
+          predicates:
+            - Path=/v1/inventory/**
+
+        - id: delivery-service
+          uri: http://delivery-service:8080
+          predicates:
+            - Path=/v1/delivery/**
+
+        - id: product-service
+          uri: http://product-service:8080
+          predicates:
+            - Path=/v1/products/**
+
+        - id: query-service
+          uri: http://query-service:8080
+          predicates:
+            - Path=/v1/query/**
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always

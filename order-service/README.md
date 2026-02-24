@@ -166,3 +166,36 @@
 ```
 
 ## GET /v1/orders/reports - 주문 통계를 조회한다.
+
+### 추가로 구현해야 할 것 (2026.02.24)
+추가로 생각해야 할 것들
+
+1. 멱등성 (가장 중요)
+
+Kafka는 메시지를 재전달할 수 있습니다. 각 서비스가 동일한 Command를 두 번 처리하면 재고가 두 번 차감됩니다.
+// sagaId로 이미 처리한 명령인지 확인 필요
+if (alreadyProcessed(command.sagaId)) return replyWithCachedResult()
+
+2. DLQ (Dead Letter Queue)
+
+Command Handler에서 예외가 발생하면 Kafka가 재시도하다가 DLQ로 보냅니다. DLQ 메시지를 모니터링하고 수동/자동 재처리하는 전략이 필요합니다.
+spring.kafka.listener.dead-letter-topic: inventory-command-dlt
+
+3. 보상 Reply 처리 미구현
+
+현재 onInventoryReply, onPaymentReply가 정방향 성공/실패만 처리하고, 보상(RELEASE/REFUND) 결과는 처리하지 않습니다. 보상도 실패할 수 있으므로 별도 처리가
+필요합니다.
+보상 실패 → 수동 개입 알림 or 재시도 큐
+
+4. Saga 타임아웃
+
+Inventory가 Reply를 영원히 안 보내면 주문이 PENDING으로 영원히 머뭅니다. Spring Batch 또는 스케줄러로 일정 시간 지난 PENDING 주문을 감지해 강제 보상해야 합니다.
+
+5. Outbox 패턴
+
+현재 orderRepository.save() 후 kafkaTemplate.send()를 호출하는데, 저장은 성공했지만 Kafka 발행이 실패하면 데이터가 불일치합니다. Outbox 패턴 + Debezium CDC로
+원자적 발행이 가능합니다.
+
+6. OrderRepository
+
+현재 OrderRepository.findById()를 사용하는데, order-service의 Repository가 아직 비어 있어서 구현이 필요합니다.

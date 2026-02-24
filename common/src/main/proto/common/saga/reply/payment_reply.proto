@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package common.saga.reply;
+
+option java_package = "common.saga.reply";
+option java_outer_classname = "PaymentReplyProto";
+option java_multiple_files = true;
+
+message PaymentReply {
+  string saga_id = 1;
+  bool success = 2;
+  optional string payment_id = 3;
+  optional string failure_reason = 4;
+}

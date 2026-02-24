@@ -1,0 +1,214 @@
+version: "3.8"
+
+# 인프라 먼저 실행 필요:
+#   cd infrastructure/docker && docker-compose up -d
+#
+# 서비스 전체 빌드 & 실행:
+#   docker-compose up --build -d
+#
+# 특정 서비스만 재빌드:
+#   docker-compose up --build order-service -d
+#
+# 포트 구성:
+#   8080 → gateway     (외부 진입점)
+#   9001 → order-service     (디버깅용)
+#   9002 → payment-service   (디버깅용)
+#   9003 → delivery-service  (디버깅용)
+#   9004 → inventory-service (디버깅용)
+#   9005 → product-service   (디버깅용)
+#   9006 → query-service     (디버깅용)
+#   9007 → kafka-streams-app (actuator 전용)
+
+services:
+
+  # ──────────────────────────────────────────
+  # Gateway (외부 진입점)
+  # ──────────────────────────────────────────
+  gateway:
+    build:
+      context: .
+      args:
+        SERVICE_NAME: gateway
+    image: forder/gateway:latest
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+    depends_on:
+      - order-service
+      - payment-service
+      - delivery-service
+      - inventory-service
+      - product-service
+      - query-service
+    networks:
+      - forder-net
+    restart: on-failure
+
+  # ──────────────────────────────────────────
+  # Order Service
+  # MongoDB + Kafka(Protobuf) + Elasticsearch
+  # ──────────────────────────────────────────
+  order-service:
+    build:
+      context: .
+      args:
+        SERVICE_NAME: order-service
+    image: forder/order-service:latest
+    container_name: order-service
+    ports:
+      - "9001:8080"
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATA_MONGODB_URI: mongodb://mongo-1:27017,mongo-2:27017,mongo-3:27017/forder?replicaSet=rs0
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET: earliest
+      SPRING_KAFKA_CONSUMER_ENABLE_AUTO_COMMIT: "false"
+      SPRING_KAFKA_LISTENER_ACK_MODE: manual_immediate
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+    networks:
+      - forder-net
+    restart: on-failure
+
+  # ──────────────────────────────────────────
+  # Payment Service
+  # MongoDB + Kafka(Protobuf)
+  # ──────────────────────────────────────────
+  payment-service:
+    build:
+      context: .
+      args:
+        SERVICE_NAME: payment-service
+    image: forder/payment-service:latest
+    container_name: payment-service
+    ports:
+      - "9002:8080"
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATA_MONGODB_URI: mongodb://mongo-1:27017,mongo-2:27017,mongo-3:27017/forder?replicaSet=rs0
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET: earliest
+      SPRING_KAFKA_CONSUMER_ENABLE_AUTO_COMMIT: "false"
+      SPRING_KAFKA_LISTENER_ACK_MODE: manual_immediate
+    networks:
+      - forder-net
+    restart: on-failure
+
+  # ──────────────────────────────────────────
+  # Delivery Service
+  # MongoDB + Kafka(Protobuf)
+  # ──────────────────────────────────────────
+  delivery-service:
+    build:
+      context: .
+      args:
+        SERVICE_NAME: delivery-service
+    image: forder/delivery-service:latest
+    container_name: delivery-service
+    ports:
+      - "9003:8080"
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATA_MONGODB_URI: mongodb://mongo-1:27017,mongo-2:27017,mongo-3:27017/forder?replicaSet=rs0
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET: earliest
+      SPRING_KAFKA_CONSUMER_ENABLE_AUTO_COMMIT: "false"
+      SPRING_KAFKA_LISTENER_ACK_MODE: manual_immediate
+    networks:
+      - forder-net
+    restart: on-failure
+
+  # ──────────────────────────────────────────
+  # Inventory Service
+  # MongoDB + Kafka(Protobuf)
+  # ──────────────────────────────────────────
+  inventory-service:
+    build:
+      context: .
+      args:
+        SERVICE_NAME: inventory-service
+    image: forder/inventory-service:latest
+    container_name: inventory-service
+    ports:
+      - "9004:8080"
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATA_MONGODB_URI: mongodb://mongo-1:27017,mongo-2:27017,mongo-3:27017/forder?replicaSet=rs0
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET: earliest
+      SPRING_KAFKA_CONSUMER_ENABLE_AUTO_COMMIT: "false"
+      SPRING_KAFKA_LISTENER_ACK_MODE: manual_immediate
+    networks:
+      - forder-net
+    restart: on-failure
+
+  # ──────────────────────────────────────────
+  # Product Service
+  # MongoDB + Elasticsearch + Kafka
+  # ──────────────────────────────────────────
+  product-service:
+    build:
+      context: .
+      args:
+        SERVICE_NAME: product-service
+    image: forder/product-service:latest
+    container_name: product-service
+    ports:
+      - "9005:8080"
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATA_MONGODB_URI: mongodb://mongo-1:27017,mongo-2:27017,mongo-3:27017/forder?replicaSet=rs0
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+    networks:
+      - forder-net
+    restart: on-failure
+
+  # ──────────────────────────────────────────
+  # Query Service (CQRS Read Side)
+  # Elasticsearch만 사용 (쓰기 없음)
+  # ──────────────────────────────────────────
+  query-service:
+    build:
+      context: .
+      args:
+        SERVICE_NAME: query-service
+    image: forder/query-service:latest
+    container_name: query-service
+    ports:
+      - "9006:8080"
+    environment:
+      SERVER_PORT: 8080
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+    networks:
+      - forder-net
+    restart: on-failure
+
+  # ──────────────────────────────────────────
+  # Kafka Streams App (데이터 enrichment)
+  # Kafka만 사용, HTTP 없음 (actuator만 노출)
+  # ──────────────────────────────────────────
+  kafka-streams-app:
+    build:
+      context: .
+      args:
+        SERVICE_NAME: kafka-streams-app
+    image: forder/kafka-streams-app:latest
+    container_name: kafka-streams-app
+    ports:
+      - "9007:8080"
+    environment:
+      SERVER_PORT: 8080
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    networks:
+      - forder-net
+    restart: on-failure
+
+networks:
+  forder-net:
+    external: true  # infrastructure/docker/docker-compose.yml에서 생성된 네트워크

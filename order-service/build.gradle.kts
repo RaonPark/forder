@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp") version "2.2.10-2.0.2"
     id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
+    id("com.google.protobuf") version "0.9.4"
 }
 
 group = "org.example"
@@ -19,6 +20,7 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://packages.confluent.io/maven/") }
 }
 
 extra["springCloudVersion"] = "2025.1.0-RC1"
@@ -44,6 +46,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+
+    // Protobuf + Schema Registry
+    implementation("io.confluent:kafka-protobuf-serializer:7.8.0")
+    implementation("com.google.protobuf:protobuf-kotlin:3.25.3")
 
     ksp("com.google.dagger:dagger-compiler:2.51.1")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
@@ -82,3 +88,22 @@ tasks.withType<Test> {
 }
 
 tasks.register("prepareKotlinBuildScriptModel") { }
+
+// .proto 파일 → Kotlin 클래스 자동 생성
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.3"
+    }
+    plugins {
+        create("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.68.1"
+        }
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("kotlin")
+            }
+        }
+    }
+}

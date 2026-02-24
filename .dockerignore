@@ -1,0 +1,13 @@
+.git
+.gradle
+.idea
+.kotlin
+.serena
+build
+docs
+serena
+
+# 각 서비스 build 캐시
+*/build
+*/.gradle
+**/*.class
