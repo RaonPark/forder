@@ -124,7 +124,7 @@ services:
   # Debezium 3.x는 Kafka 4.0 (CP 8.x) 호환
   # ──────────────────────────────────────────
   kafka-connect:
-    image: debezium/connect:3.0
+    image: debezium/connect:3.0.0.Final
     container_name: kafka-connect
     depends_on:
       - kafka

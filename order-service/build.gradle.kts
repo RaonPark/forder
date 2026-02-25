@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
+    kotlin("jvm") version "2.3.10"
+    kotlin("plugin.spring") version "2.3.10"
     id("io.kotest") version "6.0.5"
-    id("com.google.devtools.ksp") version "2.2.10-2.0.2"
+    id("com.google.devtools.ksp") version "2.3.5"
     id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.google.protobuf") version "0.9.4"
@@ -14,7 +14,7 @@ description = "order-service"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(24)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -48,8 +48,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     // Protobuf + Schema Registry
-    implementation("io.confluent:kafka-protobuf-serializer:7.8.0")
-    implementation("com.google.protobuf:protobuf-kotlin:3.25.3")
+    implementation("io.confluent:kafka-protobuf-serializer:8.1.1")
+    implementation("com.google.protobuf:protobuf-kotlin:4.33.5")
 
     ksp("com.google.dagger:dagger-compiler:2.51.1")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")

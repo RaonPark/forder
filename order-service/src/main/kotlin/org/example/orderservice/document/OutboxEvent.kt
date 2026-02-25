@@ -1,6 +1,6 @@
 package org.example.orderservice.document
 
-import com.google.protobuf.GeneratedMessageV3
+import com.google.protobuf.GeneratedMessage
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
@@ -15,7 +15,7 @@ data class OutboxEvent(
     val createdAt: Instant = Instant.now()
 ) {
     companion object {
-        fun of(aggregateId: String, topic: String, message: GeneratedMessageV3) = OutboxEvent(
+        fun of(aggregateId: String, topic: String, message: GeneratedMessage) = OutboxEvent(
             eventId = UUID.randomUUID().toString(),
             aggregateId = aggregateId,
             topic = topic,

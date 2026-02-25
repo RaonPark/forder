@@ -1,6 +1,6 @@
 package org.example.orderservice.config
 
-import com.google.protobuf.GeneratedMessageV3
+import com.google.protobuf.GeneratedMessage
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializer
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig
@@ -34,7 +34,7 @@ class KafkaConfig(
     // ──────────────────────────────────────────
 
     @Bean
-    fun producerFactory(): ProducerFactory<String, GeneratedMessageV3> {
+    fun producerFactory(): ProducerFactory<String, GeneratedMessage> {
         val configs = mapOf(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java.name,
@@ -50,7 +50,7 @@ class KafkaConfig(
     }
 
     @Bean
-    fun kafkaTemplate(): KafkaTemplate<String, GeneratedMessageV3> =
+    fun kafkaTemplate(): KafkaTemplate<String, GeneratedMessage> =
         KafkaTemplate(producerFactory())
 
     // ──────────────────────────────────────────
@@ -58,13 +58,13 @@ class KafkaConfig(
     // ──────────────────────────────────────────
 
     @Bean
-    fun consumerFactory(): ConsumerFactory<String, GeneratedMessageV3> {
+    fun consumerFactory(): ConsumerFactory<String, GeneratedMessage> {
         val configs = mapOf(
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java.name,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaProtobufDeserializer::class.java.name,
             AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to schemaRegistryUrl,
-            // 스키마 레지스트리에서 타입을 자동으로 추론 (GeneratedMessageV3 서브타입으로 역직렬화)
+            // 스키마 레지스트리에서 타입을 자동으로 추론 (GeneratedMessage 서브타입으로 역직렬화)
             KafkaProtobufDeserializerConfig.DERIVE_TYPE_CONFIG to true,
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
         )
@@ -73,9 +73,9 @@ class KafkaConfig(
 
     @Bean
     fun kafkaListenerContainerFactory(
-        kafkaTemplate: KafkaTemplate<String, GeneratedMessageV3>
-    ): ConcurrentKafkaListenerContainerFactory<String, GeneratedMessageV3> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, GeneratedMessageV3>()
+        kafkaTemplate: KafkaTemplate<String, GeneratedMessage>
+    ): ConcurrentKafkaListenerContainerFactory<String, GeneratedMessage> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, GeneratedMessage>()
         factory.setConsumerFactory(consumerFactory())
 
         // 수동 ACK: 비즈니스 로직 완료 후 커밋

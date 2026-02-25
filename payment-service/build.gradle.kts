@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
+    kotlin("jvm") version "2.3.10"
+    kotlin("plugin.spring") version "2.3.10"
     id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
 }
@@ -11,7 +11,7 @@ description = "payment-service"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(24)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -36,8 +36,8 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
 
     // Protobuf + Schema Registry
-    implementation("io.confluent:kafka-protobuf-serializer:7.8.0")
-    implementation("com.google.protobuf:protobuf-kotlin:3.25.3")
+    implementation("io.confluent:kafka-protobuf-serializer:8.1.1")
+    implementation("com.google.protobuf:protobuf-kotlin:4.33.5")
 
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")

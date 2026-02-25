@@ -1,6 +1,6 @@
 package org.example.inventoryservice.saga
 
-import com.google.protobuf.GeneratedMessageV3
+import com.google.protobuf.GeneratedMessage
 import common.saga.command.InventoryCommand
 import common.saga.command.InventoryCommandType
 import common.saga.reply.inventoryReply
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 @Component
 class InventoryCommandHandler(
     private val inventoryService: InventoryService,
-    private val kafkaTemplate: KafkaTemplate<String, GeneratedMessageV3>
+    private val kafkaTemplate: KafkaTemplate<String, GeneratedMessage>
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)

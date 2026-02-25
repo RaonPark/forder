@@ -1,6 +1,6 @@
 package org.example.paymentservice.saga
 
-import com.google.protobuf.GeneratedMessageV3
+import com.google.protobuf.GeneratedMessage
 import common.saga.command.PaymentCommand
 import common.saga.command.PaymentCommandType
 import common.saga.reply.paymentReply
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 @Component
 class PaymentCommandHandler(
     private val paymentService: PaymentService,
-    private val kafkaTemplate: KafkaTemplate<String, GeneratedMessageV3>
+    private val kafkaTemplate: KafkaTemplate<String, GeneratedMessage>
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)

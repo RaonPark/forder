@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.2.21"
+    kotlin("jvm") version "2.3.10"
     `java-library`                          // api() 구성 사용을 위해 필요
     id("com.google.protobuf") version "0.9.4"
 }
@@ -14,7 +14,7 @@ repositories {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(24)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -22,11 +22,11 @@ dependencies {
     implementation(kotlin("stdlib"))
 
     // Protobuf - api로 선언해야 소비자 서비스(order, inventory 등)에 transitive하게 전파됨
-    api("com.google.protobuf:protobuf-kotlin:3.25.3")
-    api("com.google.protobuf:protobuf-java:3.25.3")
+    api("com.google.protobuf:protobuf-kotlin:4.33.5")
+    api("com.google.protobuf:protobuf-java:4.33.5")
 
     // Schema Registry (Protobuf 직렬화 타입 공유용)
-    compileOnly("io.confluent:kafka-protobuf-serializer:7.8.0")
+    compileOnly("io.confluent:kafka-protobuf-serializer:8.1.1")
 
     testImplementation(kotlin("test"))
 }
