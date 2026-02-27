@@ -15,6 +15,8 @@ data class Delivery(
     @Id
     val deliveryId: String,
 
+    val sagaId: String? = null,     // Saga 커맨드 중복 처리 방지용 멱등성 키
+
     val orderId: String,
     val userId: String,
 
@@ -25,15 +27,15 @@ data class Delivery(
 
     val destination: DeliveryAddress,
 
-    val items: List<DeliveryItemSnapshot>,
+    val items: List<DeliveryItemSnapshot> = emptyList(),
 
     var startedAt: Instant? = null,
     var completedAt: Instant? = null,
 
     @CreatedDate
-    val createdAt: Instant = Instant.now(),
+    val createdAt: Instant? = null,
     @LastModifiedDate
-    val updatedAt: Instant = Instant.now(),
+    var updatedAt: Instant? = null,
     @Version
     var version: Long? = null
 )

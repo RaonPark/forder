@@ -17,6 +17,7 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://packages.confluent.io/maven/") }
 }
 
 extra["springCloudVersion"] = "2025.1.0-RC1"
@@ -24,7 +25,7 @@ extra["springCloudVersion"] = "2025.1.0-RC1"
 dependencies {
     implementation(project(":common"))
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("org.springframework.boot:spring-boot-starter-kafka")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -33,12 +34,18 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
+
+    // Protobuf + Schema Registry
+    implementation("io.confluent:kafka-protobuf-serializer:8.1.1")
+    implementation("com.google.protobuf:protobuf-kotlin:4.33.5")
+
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-data-mongodb-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive-test")
     testImplementation("org.springframework.boot:spring-boot-starter-kafka-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("io.mockk:mockk:1.14.9")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
