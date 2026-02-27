@@ -7,4 +7,6 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 interface PaymentRefundRepository : CoroutineCrudRepository<PaymentRefund, String> {
 
     fun findAllByPaymentId(paymentId: String): Flow<PaymentRefund>
+
+    suspend fun existsBySagaId(sagaId: String): Boolean
 }

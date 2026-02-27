@@ -12,6 +12,8 @@ data class PaymentRefund(
     @Id
     val refundId: String,
 
+    val sagaId: String? = null,    // Saga 환불 커맨드 중복 처리 방지용 멱등성 키
+
     val paymentId: String,
     val orderId: String,
     val refundType: RefundType,

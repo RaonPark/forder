@@ -17,6 +17,8 @@ data class Payment (
     @Id
     val paymentId: String,
 
+    val sagaId: String? = null,    // Saga 커맨드 중복 처리 방지용 멱등성 키
+
     val orderId: String,
     val userId: String,
 

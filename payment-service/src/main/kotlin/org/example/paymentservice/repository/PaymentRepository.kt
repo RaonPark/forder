@@ -7,4 +7,6 @@ import org.springframework.data.repository.kotlin.CoroutineSortingRepository
 interface PaymentRepository : CoroutineCrudRepository<Payment, String>, CoroutineSortingRepository<Payment, String> {
 
     suspend fun findByOrderId(orderId: String): Payment?
+
+    suspend fun findBySagaId(sagaId: String): Payment?
 }
