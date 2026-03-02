@@ -4,6 +4,8 @@ import com.google.protobuf.GeneratedMessage
 import common.saga.command.DeliveryCommand
 import common.saga.command.DeliveryCommandType
 import common.saga.reply.deliveryReply
+import kotlinx.coroutines.future.await
+import org.example.deliveryservice.exception.InvalidDeliveryOperationException
 import org.example.deliveryservice.service.DeliveryService
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -37,7 +39,7 @@ class DeliveryCommandHandler(
             }
         }
 
-        kafkaTemplate.send("delivery-reply", command.sagaId, reply)
+        kafkaTemplate.send("delivery-reply", command.sagaId, reply).await()
         ack.acknowledge()
     }
 
@@ -55,7 +57,7 @@ class DeliveryCommandHandler(
             success = true
             this.deliveryId = deliveryId
         }
-    } catch (e: Exception) {
+    } catch (e: InvalidDeliveryOperationException) {
         log.error("[Delivery] Create failed - sagaId={}", command.sagaId, e)
         deliveryReply {
             sagaId = command.sagaId
@@ -70,7 +72,7 @@ class DeliveryCommandHandler(
             sagaId = command.sagaId
             success = true
         }
-    } catch (e: Exception) {
+    } catch (e: InvalidDeliveryOperationException) {
         log.error("[Delivery] Cancel failed - sagaId={}", command.sagaId, e)
         deliveryReply {
             sagaId = command.sagaId

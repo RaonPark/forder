@@ -1,6 +1,7 @@
 package org.example.deliveryservice.service
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.example.deliveryservice.document.Courier
 import org.example.deliveryservice.dto.CourierResponse
 import org.example.deliveryservice.dto.CreateCourierRequest
@@ -33,8 +34,8 @@ class CourierService(
         courierRepository.findById(courierId)?.toResponse()
             ?: throw CourierNotFoundException("배송기사를 찾을 수 없습니다 - courierId=$courierId")
 
-    fun listActiveCouriers(): Flow<Courier> =
-        courierRepository.findAllByIsActiveTrue()
+    fun listActiveCouriers(): Flow<CourierResponse> =
+        courierRepository.findAllByIsActiveTrue().map { it.toResponse() }
 
     suspend fun deactivateCourier(courierId: String): CourierResponse {
         val courier = courierRepository.findById(courierId)

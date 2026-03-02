@@ -1,12 +1,12 @@
 package org.example.deliveryservice.controller
 
 import kotlinx.coroutines.flow.Flow
-import org.example.deliveryservice.document.Courier
 import org.example.deliveryservice.dto.CourierResponse
 import org.example.deliveryservice.dto.CreateCourierRequest
 import org.example.deliveryservice.service.CourierService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -24,7 +24,7 @@ class CourierController(
     // 배송기사 등록
     @PostMapping
     suspend fun createCourier(
-        @RequestBody request: CreateCourierRequest
+        @Valid @RequestBody request: CreateCourierRequest
     ): ResponseEntity<CourierResponse> =
         ResponseEntity.status(HttpStatus.CREATED).body(courierService.createCourier(request))
 
@@ -37,7 +37,7 @@ class CourierController(
 
     // 활성 배송기사 목록 조회
     @GetMapping
-    fun listActiveCouriers(): Flow<Courier> =
+    fun listActiveCouriers(): Flow<CourierResponse> =
         courierService.listActiveCouriers()
 
     // 배송기사 비활성화

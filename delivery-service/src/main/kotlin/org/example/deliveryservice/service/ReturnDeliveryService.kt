@@ -3,6 +3,7 @@ package org.example.deliveryservice.service
 import common.document.delivery.InspectionResult
 import common.document.delivery.ReturnDeliveryStatus
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.example.deliveryservice.document.ReturnDelivery
 import org.example.deliveryservice.dto.CompleteInspectionRequest
 import org.example.deliveryservice.dto.CreateReturnDeliveryRequest
@@ -44,8 +45,8 @@ class ReturnDeliveryService(
     suspend fun getReturnDelivery(returnDeliveryId: String): ReturnDeliveryResponse =
         findOrThrow(returnDeliveryId).toResponse()
 
-    fun getReturnDeliveriesByOrderId(orderId: String): Flow<ReturnDelivery> =
-        returnDeliveryRepository.findAllByOrderId(orderId)
+    fun getReturnDeliveriesByOrderId(orderId: String): Flow<ReturnDeliveryResponse> =
+        returnDeliveryRepository.findAllByOrderId(orderId).map { it.toResponse() }
 
     @Transactional
     suspend fun updateStatus(returnDeliveryId: String, status: ReturnDeliveryStatus): ReturnDeliveryResponse {

@@ -11,8 +11,10 @@ import org.example.deliveryservice.dto.DeliveryHistoryResponse
 import org.example.deliveryservice.dto.DeliveryResponse
 import org.example.deliveryservice.dto.UpdateDeliveryStatusRequest
 import org.example.deliveryservice.dto.toResponse
+import org.example.deliveryservice.exception.CourierNotFoundException
 import org.example.deliveryservice.exception.DeliveryNotFoundException
 import org.example.deliveryservice.exception.InvalidDeliveryOperationException
+import org.springframework.dao.OptimisticLockingFailureException
 import org.example.deliveryservice.repository.CourierRepository
 import org.example.deliveryservice.repository.DeliveryHistoryRepository
 import org.example.deliveryservice.repository.DeliveryRepository
@@ -92,6 +94,9 @@ class DeliveryService(
         if (delivery.status != DeliveryStatus.PENDING)
             throw InvalidDeliveryOperationException("PENDING 상태의 배송에만 배송기사를 배정할 수 있습니다 - status=${delivery.status}")
 
+        courierRepository.findById(courierId)
+            ?: throw CourierNotFoundException("배송기사를 찾을 수 없습니다 - courierId=$courierId")
+
         val trackingNumber = "TRK-${UUID.randomUUID().toString().take(8).uppercase()}"
         return deliveryRepository.save(
             delivery.copy(courierId = courierId, trackingNumber = trackingNumber)
@@ -153,7 +158,9 @@ class DeliveryService(
         }
     }
 
-    @Transactional
+    // 단일 Document 조회 후 단일 Document 갱신이므로 @Transactional 불필요.
+    // @Version 낙관적 잠금이 WriteConflict 대신 OptimisticLockingFailureException을 발생시켜
+    // 아래 catch 블록의 멱등성 체크가 정상 동작한다.
     suspend fun cancelDeliveryFromSaga(orderId: String) {
         val delivery = deliveryRepository.findByOrderId(orderId) ?: run {
             log.warn("[Saga] 취소 대상 배송 없음 - orderId={}", orderId)
@@ -168,8 +175,17 @@ class DeliveryService(
             return
         }
 
-        deliveryRepository.save(delivery.copy(status = DeliveryStatus.RETURNED_TO_SENDER))
-        log.info("[Saga] 배송 취소 완료 - orderId={}, deliveryId={}", orderId, delivery.deliveryId)
+        try {
+            deliveryRepository.save(delivery.copy(status = DeliveryStatus.RETURNED_TO_SENDER))
+            log.info("[Saga] 배송 취소 완료 - orderId={}, deliveryId={}", orderId, delivery.deliveryId)
+        } catch (e: OptimisticLockingFailureException) {
+            val current = deliveryRepository.findByOrderId(orderId)
+            if (current?.status == DeliveryStatus.RETURNED_TO_SENDER) {
+                log.info("[Saga] 동시 취소 처리 - 이미 취소됨 - orderId={}", orderId)
+                return
+            }
+            throw e
+        }
     }
 
     // ──────────────────────────────────────────

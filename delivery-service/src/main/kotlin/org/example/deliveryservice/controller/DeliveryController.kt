@@ -8,6 +8,7 @@ import org.example.deliveryservice.dto.UpdateDeliveryStatusRequest
 import org.example.deliveryservice.service.DeliveryService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -25,7 +26,7 @@ class DeliveryController(
     // 배송 생성
     @PostMapping
     suspend fun createDelivery(
-        @RequestBody request: CreateDeliveryRequest
+        @Valid @RequestBody request: CreateDeliveryRequest
     ): ResponseEntity<DeliveryResponse> =
         ResponseEntity.status(HttpStatus.CREATED).body(deliveryService.createDelivery(request))
 
@@ -47,7 +48,7 @@ class DeliveryController(
     @PatchMapping("/{deliveryId}/status")
     suspend fun updateStatus(
         @PathVariable deliveryId: String,
-        @RequestBody request: UpdateDeliveryStatusRequest
+        @Valid @RequestBody request: UpdateDeliveryStatusRequest
     ): ResponseEntity<DeliveryResponse> =
         ResponseEntity.ok(deliveryService.updateStatus(deliveryId, request))
 

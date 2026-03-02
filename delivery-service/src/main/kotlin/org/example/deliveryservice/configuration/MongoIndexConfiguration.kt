@@ -14,7 +14,7 @@ class MongoIndexConfiguration(
     private val reactiveMongoTemplate: ReactiveMongoTemplate
 ) : ApplicationRunner {
 
-    override fun run(args: ApplicationArguments) = runBlocking {
+    override fun run(args: ApplicationArguments) { runBlocking {
         // deliveries: orderId 조회용 인덱스
         reactiveMongoTemplate.indexOps("deliveries")
             .createIndex(Index().on("orderId", Sort.Direction.ASC))
@@ -36,5 +36,5 @@ class MongoIndexConfiguration(
         reactiveMongoTemplate.indexOps("delivery_history")
             .createIndex(Index().on("deliveryId", Sort.Direction.ASC))
             .awaitSingle()
-    }
+    } }
 }

@@ -30,7 +30,7 @@ data class ReturnDelivery(
     @CreatedDate
     val createdAt: Instant = Instant.now(),
     @LastModifiedDate
-    val updatedAt: Instant = Instant.now(),
+    var updatedAt: Instant? = null,
     @Version
     val version: Long? = null
 )

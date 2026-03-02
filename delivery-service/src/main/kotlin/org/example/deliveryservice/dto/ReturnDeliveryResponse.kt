@@ -17,7 +17,7 @@ data class ReturnDeliveryResponse(
     val status: ReturnDeliveryStatus,
     val inspectionResult: InspectionResult?,
     val createdAt: Instant,
-    val updatedAt: Instant
+    val updatedAt: Instant?
 )
 
 fun ReturnDelivery.toResponse() = ReturnDeliveryResponse(
