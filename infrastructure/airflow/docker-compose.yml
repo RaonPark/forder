@@ -1,0 +1,100 @@
+version: "3.8"
+
+# ── 공통 설정 ──────────────────────────────────────────────────────────────────
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+
+    # order-service HTTP 커넥션
+    # - order-service가 Docker(forder-net)에서 실행 중이면: http://order-service:9001
+    # - order-service가 로컬(IDE)에서 실행 중이면:          http://host.docker.internal:9001
+    AIRFLOW_CONN_ORDER_SERVICE: "http://order-service:9001"
+
+    # Saga 알림 수신 이메일 (Airflow Variable 대신 환경변수로 주입)
+    AIRFLOW_VAR_SAGA_ALERT_EMAIL: "platform-team@company.com"
+
+  volumes:
+    - ./dags:/opt/airflow/dags          # DAG 파일 마운트
+    - airflow-logs:/opt/airflow/logs
+  networks:
+    - forder-net    # order-service와 같은 네트워크
+    - airflow-net   # Airflow 내부 통신 (postgres)
+  depends_on:
+    airflow-postgres:
+      condition: service_healthy
+
+# ── 서비스 ────────────────────────────────────────────────────────────────────
+services:
+
+  # Airflow 메타데이터 DB (독립 PostgreSQL)
+  airflow-postgres:
+    image: postgres:15
+    container_name: airflow-postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    networks:
+      - airflow-net
+
+  # DB 마이그레이션 + Admin 계정 생성 (최초 1회)
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow-init
+    command: >
+      bash -c "
+        airflow db migrate &&
+        airflow users create
+          --username admin
+          --password admin
+          --firstname Airflow
+          --lastname Admin
+          --role Admin
+          --email admin@example.com
+      "
+    restart: "no"
+
+  # 웹 UI (http://localhost:8085)
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: airflow-webserver
+    command: webserver
+    ports:
+      - "8085:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      retries: 3
+    restart: unless-stopped
+
+  # DAG 실행 스케줄러
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow-scheduler
+    command: scheduler
+    restart: unless-stopped
+
+# ── 네트워크 ──────────────────────────────────────────────────────────────────
+networks:
+  forder-net:
+    external: true   # 인프라 compose에서 생성한 네트워크 공유
+  airflow-net:
+    driver: bridge   # Airflow 내부용 (postgres 통신)
+
+# ── 볼륨 ─────────────────────────────────────────────────────────────────────
+volumes:
+  airflow-postgres-data:
+  airflow-logs:

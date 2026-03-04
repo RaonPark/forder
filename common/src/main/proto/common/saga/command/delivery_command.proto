@@ -20,4 +20,5 @@ enum DeliveryCommandType {
   DELIVERY_COMMAND_TYPE_UNSPECIFIED = 0;
   CREATE = 1;
   CANCEL = 2;
+  RETURN_PICKUP = 3;
 }

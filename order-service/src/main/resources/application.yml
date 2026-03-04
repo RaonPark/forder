@@ -2,6 +2,12 @@ spring:
   application:
     name: order-service
 
+  data:
+    mongodb:
+      uri: mongodb://mongo-1:27017,mongo-2:27018,mongo-3:27019/forder?replicaSet=rs0
+      database: forder
+      auto-index-creation: false
+
   kafka:
     bootstrap-servers: localhost:9092
     properties:

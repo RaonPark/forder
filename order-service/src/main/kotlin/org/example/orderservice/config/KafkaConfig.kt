@@ -21,7 +21,10 @@ import org.springframework.kafka.core.ProducerFactory
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer
 import org.springframework.kafka.listener.DefaultErrorHandler
-import org.springframework.util.backoff.FixedBackOff
+import org.springframework.util.backoff.BackOff
+import org.springframework.util.backoff.BackOffExecution
+import org.springframework.util.backoff.ExponentialBackOff
+import java.util.concurrent.ThreadLocalRandom
 
 @Configuration
 class KafkaConfig(
@@ -82,11 +85,45 @@ class KafkaConfig(
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL_IMMEDIATE
         factory.setConcurrency(3)
 
-        // DLQ: 3회 재시도 후 실패 시 {topic}-dlt 토픽으로 발행
+        // DLT: 최대 2분 동안 지수 백오프 + jitter 재시도, 이후 {topic}.DLT 토픽으로 발행
         val recoverer = DeadLetterPublishingRecoverer(kafkaTemplate)
-        val errorHandler = DefaultErrorHandler(recoverer, FixedBackOff(1_000L, 3L))
+        val errorHandler = DefaultErrorHandler(recoverer, JitterExponentialBackOff())
         factory.setCommonErrorHandler(errorHandler)
 
         return factory
+    }
+}
+
+/**
+ * ExponentialBackOff에 ±jitterRange 랜덤 지연을 추가한 BackOff 구현.
+ *
+ * 재시도 간격: 1s → 2s → 4s → 8s → ... → 최대 30s (각 구간에 ±500ms jitter)
+ * 총 재시도 시간: 최대 2분 초과 시 DLT로 라우팅
+ *
+ * Jitter 목적: 여러 Consumer가 동시에 OptimisticLockingException을 만날 때
+ * 동일한 시점에 재시도하여 다시 충돌하는 thundering herd 방지.
+ */
+private class JitterExponentialBackOff(
+    initialInterval: Long = 1_000L,
+    multiplier: Double = 2.0,
+    maxInterval: Long = 30_000L,
+    maxElapsedTime: Long = 120_000L,
+    private val jitterRange: Long = 500L
+) : BackOff {
+
+    private val delegate = ExponentialBackOff(initialInterval, multiplier).apply {
+        this.maxInterval = maxInterval
+        this.maxElapsedTime = maxElapsedTime
+    }
+
+    override fun start(): BackOffExecution {
+        val delegateExecution = delegate.start()
+        return object : BackOffExecution {
+            override fun nextBackOff(): Long {
+                val next = delegateExecution.nextBackOff()
+                return if (next == BackOffExecution.STOP) next
+                else next + ThreadLocalRandom.current().nextLong(0, jitterRange)
+            }
+        }
     }
 }

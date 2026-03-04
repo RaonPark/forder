@@ -54,6 +54,7 @@ dependencies {
     ksp("com.google.dagger:dagger-compiler:2.51.1")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-batch-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-elasticsearch-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive-test")
@@ -68,6 +69,9 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-mongodb")
     testImplementation("io.kotest:kotest-framework-engine:6.0.5")
     testImplementation("io.kotest:kotest-runner-junit5:6.0.5")
+    testImplementation("io.kotest:kotest-assertions-core:6.0.5")
+    testImplementation("io.mockk:mockk:1.13.14")
+    testImplementation("com.ninja-squad:springmockk:5.0.1")  // Spring Boot 4.0 / Spring Framework 7 호환
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
