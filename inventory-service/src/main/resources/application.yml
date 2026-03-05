@@ -22,10 +22,13 @@ spring:
       ack-mode: manual_immediate
 
 server:
-  port: 8080
+  port: 9004
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}

@@ -1,0 +1,72 @@
+global:
+  scrape_interval: 15s      # 15초마다 메트릭 수집
+  evaluation_interval: 15s  # 15초마다 알림 규칙 평가
+
+scrape_configs:
+
+  # ──────────────────────────────────────────
+  # Spring Boot 서비스들
+  #
+  # 포트 기준: 각 서비스의 server.port (컨테이너 내부 포트)
+  # Prometheus는 forder-net 안에서 컨테이너 이름으로 직접 접근
+  #
+  # 로컬(IDE) 실행 시에는 아래처럼 변경:
+  #   targets: ["host.docker.internal:9001"]  # Mac/Windows
+  #   targets: ["172.17.0.1:9001"]            # Linux
+  # ──────────────────────────────────────────
+
+  - job_name: "gateway"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["gateway:8080"]
+        labels:
+          service: "gateway"
+
+  - job_name: "order-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["order-service:9001"]
+        labels:
+          service: "order-service"
+
+  - job_name: "payment-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["payment-service:9002"]
+        labels:
+          service: "payment-service"
+
+  - job_name: "delivery-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["delivery-service:9003"]
+        labels:
+          service: "delivery-service"
+
+  - job_name: "inventory-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["inventory-service:9004"]
+        labels:
+          service: "inventory-service"
+
+  - job_name: "product-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["product-service:9005"]
+        labels:
+          service: "product-service"
+
+  - job_name: "query-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["query-service:9006"]
+        labels:
+          service: "query-service"
+
+  - job_name: "kafka-streams-app"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["kafka-streams-app:9007"]
+        labels:
+          service: "kafka-streams-app"

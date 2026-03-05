@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: product-service
+
+  data:
+    mongodb:
+      uri: mongodb://mongo-1:27017,mongo-2:27018,mongo-3:27019/forder?replicaSet=rs0
+      database: forder
+      auto-index-creation: false
+
+server:
+  port: 9005
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}

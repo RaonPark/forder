@@ -25,3 +25,15 @@ spring:
 
     listener:
       ack-mode: manual_immediate
+
+server:
+  port: 9001
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}

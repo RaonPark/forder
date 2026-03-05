@@ -167,6 +167,45 @@ services:
     networks:
       - forder-net
 
+  # ──────────────────────────────────────────
+  # Prometheus
+  # 각 서비스의 /actuator/prometheus 를 15초마다 pull
+  # ──────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=7d"  # 7일치 메트릭 보관
+    networks:
+      - forder-net
+
+  # ──────────────────────────────────────────
+  # Grafana
+  # Prometheus를 데이터소스로 연결하여 대시보드 시각화
+  # 초기 접속: http://localhost:3000 (admin / admin)
+  # ──────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - forder-net
+
 networks:
   forder-net:
     driver: bridge
@@ -178,3 +217,5 @@ volumes:
   mongo-3-data:
   kafka-data:
   es-data:
+  prometheus-data:
+  grafana-data:

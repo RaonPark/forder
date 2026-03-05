@@ -5,32 +5,32 @@ spring:
     gateway:
       routes:
         - id: order-service
-          uri: http://order-service:8080
+          uri: http://order-service:9001
           predicates:
             - Path=/v1/orders/**
 
         - id: payment-service
-          uri: http://payment-service:8080
+          uri: http://payment-service:9002
           predicates:
             - Path=/v1/payment/**
 
         - id: inventory-service
-          uri: http://inventory-service:8080
+          uri: http://inventory-service:9004
           predicates:
             - Path=/v1/inventory/**
 
         - id: delivery-service
-          uri: http://delivery-service:8080
+          uri: http://delivery-service:9003
           predicates:
             - Path=/v1/delivery/**
 
         - id: product-service
-          uri: http://product-service:8080
+          uri: http://product-service:9005
           predicates:
             - Path=/v1/products/**
 
         - id: query-service
-          uri: http://query-service:8080
+          uri: http://query-service:9006
           predicates:
             - Path=/v1/query/**
 
@@ -45,3 +45,6 @@ management:
   endpoint:
     health:
       show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
