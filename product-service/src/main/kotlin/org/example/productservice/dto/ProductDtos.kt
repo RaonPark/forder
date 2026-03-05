@@ -1,6 +1,6 @@
 package org.example.productservice.dto
 
-import common.document.ProductStatus
+import common.document.product.ProductStatus
 import org.example.productservice.document.Products
 import java.math.BigDecimal
 import java.time.Instant

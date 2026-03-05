@@ -1,6 +1,6 @@
 package org.example.productservice.repository
 
-import common.document.ProductStatus
+import common.document.product.ProductStatus
 import kotlinx.coroutines.flow.Flow
 import org.example.productservice.document.Products
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository

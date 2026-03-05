@@ -1,6 +1,6 @@
 package org.example.productservice.service
 
-import common.document.ProductStatus
+import common.document.product.ProductStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.example.productservice.document.Products

@@ -1,6 +1,6 @@
 package org.example.productservice
 
-import common.document.ProductStatus
+import common.document.product.ProductStatus
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify

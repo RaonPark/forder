@@ -1,6 +1,6 @@
 package org.example.productservice.document
 
-import common.document.ProductStatus
+import common.document.product.ProductStatus
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
