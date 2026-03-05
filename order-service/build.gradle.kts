@@ -2,10 +2,8 @@ plugins {
     kotlin("jvm") version "2.3.10"
     kotlin("plugin.spring") version "2.3.10"
     id("io.kotest") version "6.0.5"
-    id("com.google.devtools.ksp") version "2.3.5"
     id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
-    id("com.google.protobuf") version "0.9.4"
 }
 
 group = "org.example"
@@ -23,47 +21,33 @@ repositories {
     maven { url = uri("https://packages.confluent.io/maven/") }
 }
 
-extra["springCloudVersion"] = "2025.1.0-RC1"
-
 dependencies {
     implementation(project(":common"))
     implementation(kotlin("stdlib"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-batch")
-    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("org.springframework.boot:spring-boot-starter-kafka")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
-    implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
-    implementation("com.google.dagger:dagger-compiler:2.51.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
-    // Protobuf + Schema Registry
+    // Protobuf + Schema Registry (protobuf-kotlin은 common에서 transitive 전파됨)
     implementation("io.confluent:kafka-protobuf-serializer:8.1.1")
-    implementation("com.google.protobuf:protobuf-kotlin:4.33.5")
 
-    ksp("com.google.dagger:dagger-compiler:2.51.1")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-batch-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-data-elasticsearch-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive-test")
     testImplementation("org.springframework.boot:spring-boot-starter-kafka-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
-    testImplementation("org.testcontainers:testcontainers-elasticsearch")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-kafka")
     testImplementation("org.testcontainers:testcontainers-mongodb")
@@ -74,12 +58,6 @@ dependencies {
     testImplementation("com.ninja-squad:springmockk:5.0.1")  // Spring Boot 4.0 / Spring Framework 7 호환
     testImplementation("org.springframework.boot:spring-boot-webtestclient")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
-    }
 }
 
 kotlin {
@@ -93,22 +71,3 @@ tasks.withType<Test> {
 }
 
 tasks.register("prepareKotlinBuildScriptModel") { }
-
-// .proto 파일 → Kotlin 클래스 자동 생성
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:3.25.3"
-    }
-    plugins {
-        create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.68.1"
-        }
-    }
-    generateProtoTasks {
-        all().forEach { task ->
-            task.builtins {
-                create("kotlin")
-            }
-        }
-    }
-}

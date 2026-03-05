@@ -23,6 +23,8 @@ import org.example.orderservice.dto.CancelOrderRequest
 import org.example.orderservice.dto.CreateOrderRequest
 import org.example.orderservice.dto.OrderItemRequest
 import org.example.orderservice.dto.ReturnOrderRequest
+import org.example.orderservice.exception.OrderNotFoundException
+import org.example.orderservice.exception.OrderStatusConflictException
 import org.example.orderservice.repository.OrderRepository
 import org.example.orderservice.repository.OutboxRepository
 import org.example.orderservice.service.OrderService
@@ -131,8 +133,8 @@ class OrderServiceTest : BehaviorSpec({
         `when`("존재하지 않는 orderId") {
             coEvery { orderRepository.findById("nonexistent") } returns null
 
-            then("NoSuchElementException이 발생한다") {
-                shouldThrow<NoSuchElementException> {
+            then("OrderNotFoundException이 발생한다") {
+                shouldThrow<OrderNotFoundException> {
                     service.getOrder("nonexistent")
                 }
             }
@@ -202,8 +204,8 @@ class OrderServiceTest : BehaviorSpec({
         `when`("PENDING 상태 취소 시도 (Saga 진행 중)") {
             coEvery { orderRepository.findById("order-001") } returns sampleOrder(status = OrderStatus.PENDING)
 
-            then("IllegalStateException이 발생한다 (상태 불변식 위반)") {
-                shouldThrow<IllegalStateException> {
+            then("OrderStatusConflictException이 발생한다 (상태 불변식 위반)") {
+                shouldThrow<OrderStatusConflictException> {
                     service.cancelOrder("order-001", cancelRequest)
                 }
             }
@@ -212,8 +214,8 @@ class OrderServiceTest : BehaviorSpec({
         `when`("SHIPPING 상태 취소 시도") {
             coEvery { orderRepository.findById("order-001") } returns sampleOrder(status = OrderStatus.SHIPPING)
 
-            then("IllegalStateException이 발생한다") {
-                shouldThrow<IllegalStateException> {
+            then("OrderStatusConflictException이 발생한다") {
+                shouldThrow<OrderStatusConflictException> {
                     service.cancelOrder("order-001", cancelRequest)
                 }
             }
@@ -222,8 +224,8 @@ class OrderServiceTest : BehaviorSpec({
         `when`("DELIVERED 상태 취소 시도") {
             coEvery { orderRepository.findById("order-001") } returns sampleOrder(status = OrderStatus.DELIVERED)
 
-            then("IllegalStateException이 발생한다") {
-                shouldThrow<IllegalStateException> {
+            then("OrderStatusConflictException이 발생한다") {
+                shouldThrow<OrderStatusConflictException> {
                     service.cancelOrder("order-001", cancelRequest)
                 }
             }
@@ -232,8 +234,8 @@ class OrderServiceTest : BehaviorSpec({
         `when`("이미 CANCELLING 상태에서 재취소 시도") {
             coEvery { orderRepository.findById("order-001") } returns sampleOrder(status = OrderStatus.CANCELLING)
 
-            then("IllegalStateException이 발생한다") {
-                shouldThrow<IllegalStateException> {
+            then("OrderStatusConflictException이 발생한다") {
+                shouldThrow<OrderStatusConflictException> {
                     service.cancelOrder("order-001", cancelRequest)
                 }
             }
@@ -280,8 +282,8 @@ class OrderServiceTest : BehaviorSpec({
         `when`("PREPARING 상태 반품 신청") {
             coEvery { orderRepository.findById("order-001") } returns sampleOrder(status = OrderStatus.PREPARING)
 
-            then("IllegalStateException이 발생한다") {
-                shouldThrow<IllegalStateException> {
+            then("OrderStatusConflictException이 발생한다") {
+                shouldThrow<OrderStatusConflictException> {
                     service.requestReturn("order-001", returnRequest)
                 }
             }
@@ -290,8 +292,8 @@ class OrderServiceTest : BehaviorSpec({
         `when`("RETURN_REQUESTED 상태에서 반품 중복 신청") {
             coEvery { orderRepository.findById("order-001") } returns sampleOrder(status = OrderStatus.RETURN_REQUESTED)
 
-            then("IllegalStateException이 발생한다") {
-                shouldThrow<IllegalStateException> {
+            then("OrderStatusConflictException이 발생한다") {
+                shouldThrow<OrderStatusConflictException> {
                     service.requestReturn("order-001", returnRequest)
                 }
             }
