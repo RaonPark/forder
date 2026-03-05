@@ -30,17 +30,17 @@ class MongoIndexConfiguration(
         val indexOps = mongoTemplate.indexOps(Orders::class.java)
 
         // userId 조회 최적화
-        indexOps.ensureIndex(
+        indexOps.createIndex(
             Index().on("userId", Sort.Direction.ASC).named("idx_orders_userId")
         ).awaitSingle()
 
         // status 필터링 최적화
-        indexOps.ensureIndex(
+        indexOps.createIndex(
             Index().on("status", Sort.Direction.ASC).named("idx_orders_status")
         ).awaitSingle()
 
         // userId + status 복합 인덱스 (사용자별 상태 조회)
-        indexOps.ensureIndex(
+        indexOps.createIndex(
             Index()
                 .on("userId", Sort.Direction.ASC)
                 .on("status", Sort.Direction.ASC)
@@ -54,12 +54,12 @@ class MongoIndexConfiguration(
         val indexOps = mongoTemplate.indexOps(OutboxEvent::class.java)
 
         // aggregateId(sagaId)로 Outbox 이벤트 조회
-        indexOps.ensureIndex(
+        indexOps.createIndex(
             Index().on("aggregateId", Sort.Direction.ASC).named("idx_outbox_aggregateId")
         ).awaitSingle()
 
         // createdAt 기반 CDC 처리 순서 보장
-        indexOps.ensureIndex(
+        indexOps.createIndex(
             Index().on("createdAt", Sort.Direction.ASC).named("idx_outbox_createdAt")
         ).awaitSingle()
 

@@ -19,6 +19,8 @@ import org.example.orderservice.dto.CreateOrderRequest
 import org.example.orderservice.dto.CreateOrderResponse
 import org.example.orderservice.dto.OrderResponse
 import org.example.orderservice.dto.ReturnOrderRequest
+import org.example.orderservice.exception.OrderNotFoundException
+import org.example.orderservice.exception.OrderStatusConflictException
 import org.example.orderservice.repository.OrderRepository
 import org.example.orderservice.repository.OutboxRepository
 import org.slf4j.LoggerFactory
@@ -131,8 +133,10 @@ class OrderService(
     suspend fun cancelOrder(orderId: String, request: CancelOrderRequest): OrderResponse {
         val order = findOrderOrThrow(orderId)
 
-        check(order.status in CANCELLABLE_STATUSES) {
-            "Cannot cancel order in status ${order.status}. orderId=$orderId"
+        if (order.status !in CANCELLABLE_STATUSES) {
+            throw OrderStatusConflictException(
+                "Cannot cancel order in status ${order.status}. orderId=$orderId"
+            )
         }
 
         val updated = order.copy(
@@ -177,8 +181,10 @@ class OrderService(
     suspend fun requestReturn(orderId: String, request: ReturnOrderRequest): OrderResponse {
         val order = findOrderOrThrow(orderId)
 
-        check(order.status == OrderStatus.DELIVERED) {
-            "Cannot request return for order in status ${order.status}. orderId=$orderId"
+        if (order.status != OrderStatus.DELIVERED) {
+            throw OrderStatusConflictException(
+                "Cannot request return for order in status ${order.status}. orderId=$orderId"
+            )
         }
 
         val updated = order.copy(
@@ -220,5 +226,5 @@ class OrderService(
 
     suspend fun findOrderOrThrow(orderId: String): Orders =
         orderRepository.findById(orderId)
-            ?: throw NoSuchElementException("Order not found. orderId=$orderId")
+            ?: throw OrderNotFoundException(orderId)
 }

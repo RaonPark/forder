@@ -22,8 +22,8 @@ import org.example.orderservice.saga.SagaTimeoutHandler
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.context.annotation.Import
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
@@ -87,7 +87,7 @@ class InternalSagaControllerIT {
      *
      * @LastModifiedDate 로 인해 save() 시 updatedAt 이 현재 시각으로 덮어쓰인다.
      * save() 후 ReactiveMongoTemplate.updateFirst() 로 updatedAt 을 직접 패치한다.
-     * (Template 의 updateFirst() 는 Spring Data 오디팅 콜백을 트리거하지 않음)
+     * (Template 의 updateFirst() 는 Spring Data auditing 콜백을 트리거하지 않음)
      */
     private suspend fun insertStuckOrder(
         orderId: String = UUID.randomUUID().toString(),
@@ -110,7 +110,7 @@ class InternalSagaControllerIT {
         )
         orderRepository.save(order)
 
-        // updatedAt 을 과거로 강제 설정 (오디팅 콜백 우회)
+        // updatedAt 을 과거로 강제 설정 (auditing 콜백 우회)
         mongoTemplate.updateFirst(
             Query(Criteria.where("_id").`is`(orderId)),
             Update().set("updatedAt", Instant.now().minusSeconds(minutesAgo * 60)),
@@ -137,7 +137,7 @@ class InternalSagaControllerIT {
     }
 
     @Test
-    fun `30분 이상 멈춘 PENDING 주문 - handler 위임 및 CANCELLED 응답`() = runBlocking<Unit> {
+    fun `30분 이상 멈춘 PENDING 주문 - handler 위임 및 CANCELLED 응답`() = runBlocking {
         val order = insertStuckOrder(
             orderId    = "order-pending-001",
             status     = OrderStatus.PENDING,
@@ -188,7 +188,7 @@ class InternalSagaControllerIT {
     // ════════════════════════════════════════════════════════════════════════
 
     @Test
-    fun `CANCELLING 주문이 45분 전 - 임계값(60분) 미달로 handler 미호출`() = runBlocking<Unit> {
+    fun `CANCELLING 주문이 45분 전 - 임계값(60분) 미달로 handler 미호출`() = runBlocking {
         insertStuckOrder(
             status     = OrderStatus.CANCELLING,
             minutesAgo = 45,
@@ -206,7 +206,7 @@ class InternalSagaControllerIT {
     }
 
     @Test
-    fun `최근 업데이트된 PENDING 주문(10분 전) - 임계값(30분) 미달로 handler 미호출`() = runBlocking<Unit> {
+    fun `최근 업데이트된 PENDING 주문(10분 전) - 임계값(30분) 미달로 handler 미호출`() = runBlocking {
         insertStuckOrder(
             status     = OrderStatus.PENDING,
             minutesAgo = 10
@@ -253,7 +253,7 @@ class InternalSagaControllerIT {
     }
 
     @Test
-    fun `COMPENSATING 교착 주문 - skippedOrders 에 포함되고 processedCount 에 미포함`() = runBlocking<Unit> {
+    fun `COMPENSATING 교착 주문 - skippedOrders 에 포함되고 processedCount 에 미포함`() = runBlocking {
         val order = insertStuckOrder(
             orderId    = "order-deadlock",
             status     = OrderStatus.PENDING,
@@ -274,7 +274,7 @@ class InternalSagaControllerIT {
     }
 
     @Test
-    fun `handler 예외 발생 - 해당 주문만 skipped, 나머지 정상 처리`() = runBlocking<Unit> {
+    fun `handler 예외 발생 - 해당 주문만 skipped, 나머지 정상 처리`() = runBlocking {
         val failOrder   = insertStuckOrder("o-fail",   OrderStatus.PENDING, minutesAgo = 60)
         val normalOrder = insertStuckOrder("o-normal", OrderStatus.PENDING, minutesAgo = 60)
 
@@ -298,7 +298,7 @@ class InternalSagaControllerIT {
     // ════════════════════════════════════════════════════════════════════════
 
     @Test
-    fun `멱등성 - terminal 상태(CANCELLED)는 쿼리 대상에서 제외`() = runBlocking<Unit> {
+    fun `멱등성 - terminal 상태(CANCELLED)는 쿼리 대상에서 제외`() = runBlocking {
         val cancelledOrder = Orders(
             orderId         = "already-cancelled",
             userId          = "user-test",

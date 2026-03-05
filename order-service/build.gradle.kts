@@ -72,6 +72,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:6.0.5")
     testImplementation("io.mockk:mockk:1.13.14")
     testImplementation("com.ninja-squad:springmockk:5.0.1")  // Spring Boot 4.0 / Spring Framework 7 호환
+    testImplementation("org.springframework.boot:spring-boot-webtestclient")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
