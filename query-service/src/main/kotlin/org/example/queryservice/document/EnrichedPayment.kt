@@ -10,7 +10,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 import java.math.BigDecimal
 import java.time.Instant
 
-@Document(indexName = "payments-view")
+@Document(indexName = "payments-view", createIndex = false)
 data class EnrichedPayment(
     @Id
     val paymentId: String,

@@ -13,7 +13,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 import java.math.BigDecimal
 import java.time.Instant
 
-@Document(indexName = "orders-view")
+@Document(indexName = "orders-view", createIndex = false)
 data class EnrichedOrders(
     @Id
     val orderId: String,

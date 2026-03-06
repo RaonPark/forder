@@ -7,7 +7,7 @@ import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import java.math.BigDecimal
 
-@Document(indexName = "products-view")
+@Document(indexName = "products-view", createIndex = false)
 data class EnrichedProducts(
     @Id
     val productId: String,

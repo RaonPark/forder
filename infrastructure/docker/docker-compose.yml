@@ -168,6 +168,23 @@ services:
       - forder-net
 
   # ──────────────────────────────────────────
+  # Kibana
+  # Elasticsearch 데이터 시각화 / Dev Tools 쿼리 콘솔
+  # 초기 접속: http://localhost:5601
+  # ──────────────────────────────────────────
+  kibana:
+    image: kibana:8.13.0
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    networks:
+      - forder-net
+
+  # ──────────────────────────────────────────
   # Prometheus
   # 각 서비스의 /actuator/prometheus 를 15초마다 pull
   # ──────────────────────────────────────────

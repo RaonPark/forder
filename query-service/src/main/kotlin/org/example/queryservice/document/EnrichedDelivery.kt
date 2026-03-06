@@ -8,7 +8,7 @@ import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import java.time.Instant
 
-@Document(indexName = "deliveries-view")
+@Document(indexName = "deliveries-view", createIndex = false)
 data class EnrichedDelivery (
     @Id
     val deliveryId: String,
