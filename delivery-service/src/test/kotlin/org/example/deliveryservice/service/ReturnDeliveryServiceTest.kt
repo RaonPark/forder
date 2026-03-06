@@ -16,6 +16,7 @@ import org.example.deliveryservice.dto.CreateReturnDeliveryRequest
 import org.example.deliveryservice.dto.ReturnDeliveryResponse
 import org.example.deliveryservice.exception.InvalidDeliveryOperationException
 import org.example.deliveryservice.repository.CourierRepository
+import org.example.deliveryservice.repository.DeliveryRepository
 import org.example.deliveryservice.repository.ReturnDeliveryRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -27,13 +28,14 @@ import kotlin.test.assertIs
 class ReturnDeliveryServiceTest {
 
     @MockK lateinit var returnDeliveryRepository: ReturnDeliveryRepository
+    @MockK lateinit var deliveryRepository: DeliveryRepository
     @MockK lateinit var courierRepository: CourierRepository
 
     private lateinit var sut: ReturnDeliveryService
 
     @BeforeEach
     fun setUp() {
-        sut = ReturnDeliveryService(returnDeliveryRepository, courierRepository)
+        sut = ReturnDeliveryService(returnDeliveryRepository, deliveryRepository, courierRepository)
     }
 
     // ──────────────────────────────────────────────────────────

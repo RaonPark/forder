@@ -1,5 +1,6 @@
 package org.example.deliveryservice.service
 
+import common.document.delivery.DeliveryAddress
 import common.document.delivery.InspectionResult
 import common.document.delivery.ReturnDeliveryStatus
 import kotlinx.coroutines.flow.Flow
@@ -12,6 +13,8 @@ import org.example.deliveryservice.dto.toResponse
 import org.example.deliveryservice.exception.InvalidDeliveryOperationException
 import org.example.deliveryservice.exception.ReturnDeliveryNotFoundException
 import org.example.deliveryservice.repository.CourierRepository
+import org.springframework.dao.DuplicateKeyException
+import org.example.deliveryservice.repository.DeliveryRepository
 import org.example.deliveryservice.repository.ReturnDeliveryRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -21,6 +24,7 @@ import java.util.UUID
 @Service
 class ReturnDeliveryService(
     private val returnDeliveryRepository: ReturnDeliveryRepository,
+    private val deliveryRepository: DeliveryRepository,
     private val courierRepository: CourierRepository
 ) {
 
@@ -81,6 +85,68 @@ class ReturnDeliveryService(
         )
         log.info("[ReturnDelivery] 검수 완료 - returnDeliveryId={}, resellable={}", returnDeliveryId, request.isResellable)
         return updated.toResponse()
+    }
+
+    // ──────────────────────────────────────────
+    // Saga 전용: 반품 픽업 스케줄
+    // ──────────────────────────────────────────
+
+    /**
+     * 반품 Saga의 RETURN_PICKUP 커맨드를 처리한다.
+     *
+     * 멱등성: returnRequestId(= sagaId)로 이미 생성된 ReturnDelivery가 있으면
+     *        재처리 없이 기존 returnDeliveryId를 반환한다.
+     *        Kafka at-least-once + 서비스 재시작 시 중복 수신 방어.
+     */
+    @Transactional
+    suspend fun scheduleReturnPickupFromSaga(
+        sagaId: String,
+        orderId: String,
+        pickupAddress: String,
+        receiverName: String,
+        receiverPhone: String
+    ): String {
+        // 멱등성 체크: returnRequestId = sagaId
+        returnDeliveryRepository.findByReturnRequestId(sagaId)?.let {
+            log.info("[Saga] 이미 처리된 반품 픽업 - sagaId={}, returnDeliveryId={}", sagaId, it.returnDeliveryId)
+            return it.returnDeliveryId
+        }
+
+        // 원본 배송 조회 (originalDeliveryId 획득)
+        val originalDelivery = deliveryRepository.findByOrderId(orderId)
+            ?: throw InvalidDeliveryOperationException(
+                "반품 픽업 스케줄 실패 - 원본 배송 없음 orderId=$orderId"
+            )
+
+        val address = DeliveryAddress(
+            receiverName  = receiverName,
+            receiverPhone = receiverPhone,
+            zipCode       = "",
+            baseAddress   = pickupAddress,
+            detailAddress = ""
+        )
+
+        val courierId = courierRepository.findFirstByIsActiveTrue()?.courierId
+
+        val returnDelivery = ReturnDelivery(
+            returnDeliveryId   = UUID.randomUUID().toString(),
+            originalDeliveryId = originalDelivery.deliveryId,
+            orderId            = orderId,
+            returnRequestId    = sagaId,
+            pickupAddress      = address,
+            courierId          = courierId,
+            status             = ReturnDeliveryStatus.PICKUP_REQUESTED
+        )
+
+        return try {
+            val saved = returnDeliveryRepository.save(returnDelivery)
+            log.info("[Saga] 반품 픽업 스케줄 완료 - sagaId={}, returnDeliveryId={}", sagaId, saved.returnDeliveryId)
+            saved.returnDeliveryId
+        } catch (e: DuplicateKeyException) {
+            // 2차 방어: 분산 환경 동시 처리로 unique index(returnRequestId) 위반
+            log.warn("[Saga] returnRequestId 중복 감지(동시 처리) - sagaId={}", sagaId)
+            returnDeliveryRepository.findByReturnRequestId(sagaId)?.returnDeliveryId ?: throw e
+        }
     }
 
     private suspend fun findOrThrow(returnDeliveryId: String): ReturnDelivery =

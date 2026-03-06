@@ -180,11 +180,17 @@ class DeliveryService(
             log.info("[Saga] 배송 취소 완료 - orderId={}, deliveryId={}", orderId, delivery.deliveryId)
         } catch (e: OptimisticLockingFailureException) {
             val current = deliveryRepository.findByOrderId(orderId)
-            if (current?.status == DeliveryStatus.RETURNED_TO_SENDER) {
-                log.info("[Saga] 동시 취소 처리 - 이미 취소됨 - orderId={}", orderId)
-                return
+            when (current?.status) {
+                DeliveryStatus.RETURNED_TO_SENDER -> {
+                    log.info("[Saga] 동시 취소 처리 - 이미 취소됨 - orderId={}", orderId)
+                    return
+                }
+                DeliveryStatus.DELIVERED -> {
+                    // OLF 발생 시점에 이미 DELIVERED로 전이된 경우 — 비즈니스 예외로 변환
+                    throw InvalidDeliveryOperationException("이미 배달 완료된 배송은 취소할 수 없습니다 - orderId=$orderId")
+                }
+                else -> throw e
             }
-            throw e
         }
     }
 

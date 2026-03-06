@@ -14,6 +14,7 @@ import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.example.deliveryservice.exception.InvalidDeliveryOperationException
 import org.example.deliveryservice.service.DeliveryService
+import org.example.deliveryservice.service.ReturnDeliveryService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -27,6 +28,7 @@ import kotlin.test.assertIs
 class DeliveryCommandHandlerTest {
 
     @MockK lateinit var deliveryService: DeliveryService
+    @MockK lateinit var returnDeliveryService: ReturnDeliveryService
     @MockK lateinit var kafkaTemplate: KafkaTemplate<String, GeneratedMessage>
 
     private lateinit var handler: DeliveryCommandHandler
@@ -34,7 +36,7 @@ class DeliveryCommandHandlerTest {
 
     @BeforeEach
     fun setUp() {
-        handler = DeliveryCommandHandler(deliveryService, kafkaTemplate)
+        handler = DeliveryCommandHandler(deliveryService, returnDeliveryService, kafkaTemplate)
         ack = mockk()
         every { ack.acknowledge() } just Runs
     }

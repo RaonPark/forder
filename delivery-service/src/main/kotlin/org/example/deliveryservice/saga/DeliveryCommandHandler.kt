@@ -7,6 +7,7 @@ import common.saga.reply.deliveryReply
 import kotlinx.coroutines.future.await
 import org.example.deliveryservice.exception.InvalidDeliveryOperationException
 import org.example.deliveryservice.service.DeliveryService
+import org.example.deliveryservice.service.ReturnDeliveryService
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component
 @Component
 class DeliveryCommandHandler(
     private val deliveryService: DeliveryService,
+    private val returnDeliveryService: ReturnDeliveryService,
     private val kafkaTemplate: KafkaTemplate<String, GeneratedMessage>
 ) {
 
@@ -37,6 +39,7 @@ class DeliveryCommandHandler(
                     failureReason = "Unknown command type: ${command.type}"
                 }
             }
+            DeliveryCommandType.RETURN_PICKUP                           -> returnPickup(command)
         }
 
         kafkaTemplate.send("delivery-reply", command.sagaId, reply).await()
@@ -78,6 +81,28 @@ class DeliveryCommandHandler(
             sagaId = command.sagaId
             success = false
             failureReason = e.message ?: "배송 취소 실패"
+        }
+    }
+
+    private suspend fun returnPickup(command: DeliveryCommand) = try {
+        val returnDeliveryId = returnDeliveryService.scheduleReturnPickupFromSaga(
+            sagaId        = command.sagaId,
+            orderId       = command.orderId,
+            pickupAddress = command.deliveryAddress,
+            receiverName  = command.receiverName,
+            receiverPhone = command.receiverPhone
+        )
+        deliveryReply {
+            sagaId = command.sagaId
+            success = true
+            deliveryId = returnDeliveryId
+        }
+    } catch (e: InvalidDeliveryOperationException) {
+        log.error("[Delivery] ReturnPickup failed - sagaId={}", command.sagaId, e)
+        deliveryReply {
+            sagaId = command.sagaId
+            success = false
+            failureReason = e.message ?: "반품 픽업 스케줄 실패"
         }
     }
 }

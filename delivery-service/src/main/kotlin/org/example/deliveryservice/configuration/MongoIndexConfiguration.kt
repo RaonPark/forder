@@ -32,6 +32,13 @@ class MongoIndexConfiguration(
             .createIndex(Index().on("orderId", Sort.Direction.ASC))
             .awaitSingle()
 
+        // return_deliveries: returnRequestId sparse unique (null 허용, 반품 Saga 중복 커맨드 차단)
+        reactiveMongoTemplate.indexOps("return_deliveries")
+            .createIndex(
+                Index().on("returnRequestId", Sort.Direction.ASC).unique().sparse()
+            )
+            .awaitSingle()
+
         // delivery_history: deliveryId 조회용 인덱스
         reactiveMongoTemplate.indexOps("delivery_history")
             .createIndex(Index().on("deliveryId", Sort.Direction.ASC))
