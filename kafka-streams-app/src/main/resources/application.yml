@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: kafka-streams-app
+  kafka:
+    bootstrap-servers: kafka:29092
+    streams:
+      application-id: forder-enrichment
+      properties:
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        num.stream.threads: 3
+        commit.interval.ms: 1000
+        cache.max.bytes.buffering: 10485760
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true

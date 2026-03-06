@@ -1,10 +1,10 @@
 {
-  "name": "elasticsearch-orders-sink",
+  "name": "elasticsearch-inventory-sink",
   "config": {
     "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
     "tasks.max": "3",
 
-    "topics": "enriched-orders",
+    "topics": "enriched-inventory",
 
     "connection.url": "http://elasticsearch:9200",
     "connection.compression": "true",
@@ -17,7 +17,6 @@
     "key.ignore": "false",
     "schema.ignore": "true",
     "compact.map.entries": "true",
-    "drop.invalid.message": "false",
 
     "behavior.on.null.values": "delete",
     "behavior.on.malformed.documents": "warn",
@@ -36,14 +35,13 @@
     "value.converter.schemas.enable": "false",
 
     "transforms": "addIndexedTime",
-
     "transforms.addIndexedTime.type": "org.apache.kafka.connect.transforms.InsertField$Value",
     "transforms.addIndexedTime.timestamp.field": "indexedAt",
 
     "errors.tolerance": "all",
     "errors.log.enable": "true",
     "errors.log.include.messages": "true",
-    "errors.deadletterqueue.topic.name": "dlq-elasticsearch-orders",
+    "errors.deadletterqueue.topic.name": "dlq-elasticsearch-inventory",
     "errors.deadletterqueue.topic.replication.factor": "3",
     "errors.deadletterqueue.context.headers.enable": "true"
   }
