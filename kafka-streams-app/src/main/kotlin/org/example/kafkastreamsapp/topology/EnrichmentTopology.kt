@@ -17,8 +17,8 @@ import org.springframework.context.annotation.Configuration
 /**
  * Debezium CDC → Kafka Streams → Elasticsearch enrichment topology.
  *
- * 입력 토픽 (Debezium MongoDB CDC, JsonConverter):
- *   key:   {"_id": "<entity-id>"}
+ * 입력 토픽 (Debezium MongoDB CDC, JsonConverter schemas.enable=false):
+ *   key:   {"id": "<entity-id>"}  (ExtractNewDocumentState SMT가 _id → id 변환)
  *   value: flattened document JSON (with __deleted: "true" on delete)
  *
  * 출력 토픽 (ES Sink, plain JSON):
@@ -87,9 +87,21 @@ class EnrichmentTopology(private val mapper: ObjectMapper) {
         )
     }
 
-    /** Debezium key {"_id":"entity-id"} → plain entity id string */
+    /**
+     * Debezium key → plain entity id string.
+     *
+     * ExtractNewDocumentState SMT + JsonConverter(schemas.enable=false):
+     *   key = {"id":"entity-id"}  (SMT가 _id → id로 변환)
+     *
+     * SMT 미적용 시:
+     *   key = {"_id":"entity-id"} (MongoDB 원본 필드명)
+     */
     private fun extractId(keyJson: String): String =
-        try { mapper.readTree(keyJson).path("_id").asText() } catch (e: Exception) { keyJson }
+        try {
+            val node = mapper.readTree(keyJson)
+            val id = node.path("id").asText()
+            if (id.isNotEmpty()) id else node.path("_id").asText().ifEmpty { keyJson }
+        } catch (e: Exception) { keyJson }
 
     private fun isDeleted(value: String?): Boolean {
         if (value == null) return true
@@ -223,8 +235,8 @@ class EnrichmentTopology(private val mapper: ObjectMapper) {
             .map { keyJson, value -> org.apache.kafka.streams.KeyValue(extractId(keyJson), value) }
             .processValues(
                 FixedKeyProcessorSupplier { InventoryEnricher(mapper) },
-                Named.as("inventory-enricher"),
-                PRODUCTS_STORE
+                Named.`as`("inventory-enricher")
+                // GlobalKTable store는 모든 Processor에 자동 공개되므로 명시 불필요
             )
             .to(ENRICHED_INVENTORY, produced())
     }
@@ -236,8 +248,8 @@ class EnrichmentTopology(private val mapper: ObjectMapper) {
             .map { keyJson, value -> org.apache.kafka.streams.KeyValue(extractId(keyJson), value) }
             .processValues(
                 FixedKeyProcessorSupplier { OrderEnricher(mapper) },
-                Named.as("order-enricher"),
-                PRODUCTS_STORE, PAYMENTS_STORE, DELIVERIES_STORE
+                Named.`as`("order-enricher")
+                // GlobalKTable store는 모든 Processor에 자동 공개되므로 명시 불필요
             )
             .to(ENRICHED_ORDERS, produced())
     }

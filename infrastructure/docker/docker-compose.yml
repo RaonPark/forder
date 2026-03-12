@@ -121,10 +121,11 @@ services:
 
   # ──────────────────────────────────────────
   # Kafka Connect (Debezium 포함)
-  # Debezium 3.x는 Kafka 4.0 (CP 8.x) 호환
+  # Debezium 3.4.x — Kafka Connect 4.1.1 기반 (Kafka 4.0 / CP 8.x 호환)
+  # Debezium 3.0+부터 Docker Hub 게시 중단 → quay.io 사용
   # ──────────────────────────────────────────
   kafka-connect:
-    image: debezium/connect:3.0.0.Final
+    image: quay.io/debezium/connect:3.4.2.Final
     container_name: kafka-connect
     depends_on:
       - kafka
